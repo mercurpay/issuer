@@ -15,14 +15,14 @@ public class VaultServiceProducers {
   private final Integer vaultSvcPort;
 
   public VaultServiceProducers(
-      @Value("${vault.url}") String vaultSvcUrl, @Value("${vault.port}") Integer vaultSvcPort) {
+      @Value("${vault.service.host}") String vaultSvcUrl, @Value("${vault.service.port}") Integer vaultSvcPort) {
     this.vaultSvcUrl = vaultSvcUrl;
     this.vaultSvcPort = vaultSvcPort;
   }
 
   @Bean("vaultManagedChannel")
   public ManagedChannel vaultManagedChannel(){
-      return ManagedChannelBuilder.forAddress(this.vaultSvcUrl,this.vaultSvcPort).build();
+      return ManagedChannelBuilder.forAddress(this.vaultSvcUrl,this.vaultSvcPort).usePlaintext().build();
   }
 
   @Bean("vaultServiceStub")

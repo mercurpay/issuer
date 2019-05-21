@@ -1,10 +1,11 @@
 package tech.claudioed.issuer.domain.service.data;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Value;
 
-@Data
+@Value
+@Builder
 public class TokenData {
 
-    private String data;
-
+  String data;
 }
