@@ -1,25 +1,33 @@
 package tech.claudioed.issuer.domain;
 
-import lombok.Data;
-import org.springframework.data.annotation.Id;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import tech.claudioed.issuer.domain.service.data.TransactionValue;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Transaction {
 
-    @Id
-    private String id;
+  private String id;
 
-    private BigDecimal value;
+  private BigDecimal value;
 
-    private String card;
+  private String card;
 
-    private String customer;
+  private String customer;
 
-    private String type;
+  private OperationType type;
 
-    private LocalDateTime at;
+  private LocalDateTime at;
+
+  public TransactionValue value(){
+    return this.type.value(this.value);
+  }
 
 }

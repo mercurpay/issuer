@@ -8,16 +8,41 @@ option objc_class_prefix = "ISS";
 package vault;
 
 service IssuerService {
-    rpc requestPayment (RequestPayment) returns (Transaction) {
-    }
+  rpc requestPayment (RequestPayment) returns (Transaction) {}
+  rpc requestCard (RequestCard) returns (Account) {}
+  rpc requestCharge(RequestCharge) returns (CardBalance){}
 }
 
 message RequestPayment {
-    string token = 1;
-    double value = 2;
-    string type = 3;
+  string token = 1;
+  double value = 2;
+  string type = 3;
 }
 
 message Transaction {
-    string id = 1;
+  string id = 1;
+}
+
+message RequestCard {
+  string card = 1;
+  string customer = 2;
+  string issuer = 3;
+  double balance = 4;
+}
+
+message Account {
+  string id = 1;
+}
+
+message RequestCharge {
+  string card = 1;
+  string customer = 2;
+  string issuer = 3;
+  double value = 4;
+}
+
+message CardBalance {
+  string card = 1;
+  string customer = 2;
+  double balance = 3;
 }

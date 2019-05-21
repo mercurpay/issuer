@@ -2,7 +2,7 @@ package tech.claudioed.issuer.domain.service;
 
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
-import tech.claudioed.issuer.domain.service.data.Card;
+import tech.claudioed.issuer.domain.Card;
 import vault.DataByToken;
 import vault.Token;
 import vault.VaultServiceGrpc;

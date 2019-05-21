@@ -1,8 +1,8 @@
 package tech.claudioed.issuer.domain.service.data;
 
-import lombok.Data;
-
 import java.math.BigDecimal;
+import lombok.Data;
+import tech.claudioed.issuer.domain.OperationType;
 
 @Data
 public class TransactionRequest {
@@ -11,6 +11,6 @@ public class TransactionRequest {
 
   private BigDecimal value;
 
-  private String type;
+  private OperationType type;
 
 }
