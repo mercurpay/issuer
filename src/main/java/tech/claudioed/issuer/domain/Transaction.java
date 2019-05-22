@@ -26,6 +26,8 @@ public class Transaction {
 
   private LocalDateTime at;
 
+  private String status;
+
   public TransactionValue value(){
     return this.type.value(this.value);
   }

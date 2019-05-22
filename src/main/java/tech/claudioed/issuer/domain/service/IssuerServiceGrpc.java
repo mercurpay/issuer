@@ -53,7 +53,8 @@ public class IssuerServiceGrpc extends issuer.IssuerServiceGrpc.IssuerServiceImp
                       .build();
       final tech.claudioed.issuer.domain.Transaction transaction =
               this.purchaseService.acquire(transactionRequest);
-      final Transaction transactionData = Transaction.newBuilder().setId(transaction.getId()).build();
+      final Transaction transactionData = Transaction.newBuilder()
+          .setStatus(transaction.getStatus()).setId(transaction.getId()).build();
       paymentSpan.finish();
       responseObserver.onNext(transactionData);
       responseObserver.onCompleted();

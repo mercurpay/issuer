@@ -21,6 +21,7 @@ message RequestPayment {
 
 message Transaction {
   string id = 1;
+  string status = 2;
 }
 
 message RequestCard {

@@ -37,7 +37,7 @@ public class PurchaseService {
           .build()
           .check();
       final Transaction transaction = Transaction.builder().id(UUID.randomUUID().toString()).at(LocalDateTime.now()).card(card.getCard())
-          .customer(card.getCustomer()).type(transactionRequest.getType())
+          .customer(card.getCustomer()).type(transactionRequest.getType()).status("APPROVED")
           .value(transactionRequest.getValue()).build();
       this.accountRepository.save(account);
       return transaction;
