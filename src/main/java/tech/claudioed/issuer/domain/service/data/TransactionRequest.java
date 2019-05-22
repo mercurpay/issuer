@@ -1,19 +1,19 @@
 package tech.claudioed.issuer.domain.service.data;
 
-import java.math.BigDecimal;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Value;
 import tech.claudioed.issuer.domain.OperationType;
+
+import java.math.BigDecimal;
 
 @Value
 @Builder
 public class TransactionRequest {
 
-  private TokenData data;
+  TokenData data;
 
-  private BigDecimal value;
+  BigDecimal value;
 
-  private OperationType type;
+  OperationType type;
 
 }
