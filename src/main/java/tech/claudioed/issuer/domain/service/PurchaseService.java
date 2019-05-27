@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import tech.claudioed.issuer.domain.Account;
 import tech.claudioed.issuer.domain.Card;
@@ -13,6 +14,7 @@ import tech.claudioed.issuer.domain.repository.AccountRepository;
 import tech.claudioed.issuer.domain.service.data.TransactionRequest;
 import tech.claudioed.issuer.domain.service.data.TransactionValue;
 
+@Slf4j
 @Service
 public class PurchaseService {
 
@@ -27,10 +29,12 @@ public class PurchaseService {
   }
 
   public Transaction acquire(@NonNull TransactionRequest transactionRequest) {
+    log.info("Requesting new transaction for token {} ",transactionRequest.getData().getData());
     final Card card = this.vaultService.token(transactionRequest.getData().getData());
     final Optional<Account> accountData = this.accountRepository.findById(card.getCard());
     if(accountData.isPresent()){
       final Account account = accountData.get();
+      log.info("Account id {} is ready for acquire",transactionRequest.getData().getData());
       CheckCardBalance.builder()
           .card(account.getCard())
           .transactionValue(TransactionValue.builder().value(transactionRequest.getValue()).build())
@@ -42,6 +46,7 @@ public class PurchaseService {
       this.accountRepository.save(account);
       return transaction;
     }else {
+      log.error("Account for token {} not found",transactionRequest.getData().getData());
       throw new AccountNotFound();
     }
   }

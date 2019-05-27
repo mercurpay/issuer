@@ -1,14 +1,10 @@
 package tech.claudioed.issuer.domain;
 
+import lombok.*;
+
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
-import tech.claudioed.issuer.domain.Transaction;
 
 @Data
 @Builder
