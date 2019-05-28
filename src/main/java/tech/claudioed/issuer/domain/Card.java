@@ -1,5 +1,7 @@
 package tech.claudioed.issuer.domain;
 
+import java.util.HashSet;
+import java.util.Objects;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -26,6 +28,9 @@ public class Card {
   }
 
   public Card registerTransaction(@NonNull Transaction transaction){
+    if(Objects.isNull(this.transactions)){
+      this.transactions = new HashSet<>();
+    }
     this.transactions.add(transaction);
     return this;
   }
