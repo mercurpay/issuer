@@ -64,8 +64,8 @@ public class PurchaseService {
         final Transaction transaction = Transaction.builder().id(UUID.randomUUID().toString()).at(LocalDateTime.now()).card(card.getCard())
                 .customer(card.getCustomer()).type(transactionRequest.getType()).status("APPROVED")
                 .value(transactionRequest.getValue()).build();
-        this.accountRepository.save(account);
         try {
+          this.accountRepository.save(account.registerTransaction(transaction));
           this.connection.publish("transaction-created",this.mapper.writeValueAsBytes(transaction));
           return transaction;
         } catch (JsonProcessingException e) {
