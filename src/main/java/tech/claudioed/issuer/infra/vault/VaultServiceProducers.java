@@ -1,4 +1,4 @@
-package tech.claudioed.issuer.infra;
+package tech.claudioed.issuer.infra.vault;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
