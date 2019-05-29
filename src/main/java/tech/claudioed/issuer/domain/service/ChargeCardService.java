@@ -1,5 +1,6 @@
 package tech.claudioed.issuer.domain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,7 +47,6 @@ public class ChargeCardService {
     this.mapper = mapper;
   }
 
-  @SneakyThrows
   Balance charge(@NonNull CardChargeRequest cardChargeRequest){
     return this.chargeTimer.record(() ->{
       log.info("Requesting charge for token {} ",cardChargeRequest.getData().getData());
@@ -61,8 +61,13 @@ public class ChargeCardService {
             .card(card.getCard()).build();
         account.registerTransaction(transaction);
         this.accountRepository.save(account);
-        this.connection.publish("card-charged",this.mapper.writeValueAsBytes(transaction));
-        return account.balance();
+        try {
+          this.connection.publish("card-charged",this.mapper.writeValueAsBytes(transaction));
+          return account.balance();
+        } catch (JsonProcessingException e) {
+          log.error("Error on json serialize",e);
+          throw new RuntimeException("Error on json serialize");
+        }
       }else {
         log.error("Account not found {} ",cardChargeRequest.getData().getData());
         throw new AccountNotFound();

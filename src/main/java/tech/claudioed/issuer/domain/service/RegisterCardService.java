@@ -1,13 +1,14 @@
 package tech.claudioed.issuer.domain.service;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
+import static tech.claudioed.issuer.infra.metrics.MetricsConfiguration.REQUEST_CARD_TIMER;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Timer;
 import io.nats.client.Connection;
+import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,6 @@ import tech.claudioed.issuer.domain.OperationType;
 import tech.claudioed.issuer.domain.Transaction;
 import tech.claudioed.issuer.domain.repository.AccountRepository;
 import tech.claudioed.issuer.domain.service.data.RequestCardRequest;
-
-import static tech.claudioed.issuer.infra.metrics.MetricsConfiguration.REQUEST_CARD_TIMER;
 
 /**
  * @author claudioed on 2019-05-20.
@@ -45,7 +44,6 @@ public class RegisterCardService {
     this.mapper = mapper;
   }
 
-  @SneakyThrows
   Account newCard(@NonNull RequestCardRequest requestCardRequest){
     return this.requestCardTimer.record(() ->{
       log.info("Requesting new card for customer {} and issuer {} ",requestCardRequest.getCustomer(),requestCardRequest.getIssuer());
@@ -57,9 +55,14 @@ public class RegisterCardService {
               .card(requestCardRequest.getCard()).value(requestCardRequest.getBalance()).build();
       card.registerTransaction(transaction);
       final Account newAccount = Account.builder().id(requestCardRequest.getCard()).card(card).build();
-      this.connection.publish("card-created",this.mapper.writeValueAsBytes(newAccount));
-      log.info("New card request for customer {}",requestCardRequest.getCustomer());
-      return this.accountRepository.save(newAccount);
+      try {
+        this.connection.publish("card-created",this.mapper.writeValueAsBytes(newAccount));
+        log.info("New card request for customer {}",requestCardRequest.getCustomer());
+        return this.accountRepository.save(newAccount);
+      } catch (JsonProcessingException e) {
+        log.error("Error on json serialize",e);
+        throw new RuntimeException("Error on json serialize");
+      }
     });
   }
 

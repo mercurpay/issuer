@@ -1,5 +1,6 @@
 package tech.claudioed.issuer.domain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Timer;
 import io.nats.client.Connection;
@@ -47,7 +48,6 @@ public class PurchaseService {
     this.mapper = mapper;
   }
 
-  @SneakyThrows
   Transaction acquire(@NonNull TransactionRequest transactionRequest) {
     return this.requestPaymentTimer.record(() ->{
       log.info("Requesting new transaction for token {} ",transactionRequest.getData().getData());
@@ -65,8 +65,13 @@ public class PurchaseService {
                 .customer(card.getCustomer()).type(transactionRequest.getType()).status("APPROVED")
                 .value(transactionRequest.getValue()).build();
         this.accountRepository.save(account);
-        this.connection.publish("transaction-created",this.mapper.writeValueAsBytes(transaction));
-        return transaction;
+        try {
+          this.connection.publish("transaction-created",this.mapper.writeValueAsBytes(transaction));
+          return transaction;
+        } catch (JsonProcessingException e) {
+          log.error("Error on json serialize",e);
+          throw new RuntimeException("Error on json serialize");
+        }
       }else {
         log.error("Account for token {} not found",transactionRequest.getData().getData());
         throw new AccountNotFound();
