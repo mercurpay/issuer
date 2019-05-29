@@ -1,7 +1,5 @@
 package tech.claudioed.issuer.domain.service;
 
-import static tech.claudioed.issuer.infra.metrics.MetricsConfiguration.REQUEST_CARD_TIMER;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Timer;
@@ -29,23 +27,18 @@ public class RegisterCardService {
 
   private final AccountRepository accountRepository;
 
-  private final Timer requestCardTimer;
-
   private final Connection connection;
 
   private final ObjectMapper mapper;
 
   public RegisterCardService(AccountRepository accountRepository,
-                             @Qualifier(REQUEST_CARD_TIMER) Timer requestCardTimer,
                              @Qualifier("natsConnection") Connection connection, ObjectMapper mapper) {
     this.accountRepository = accountRepository;
-    this.requestCardTimer = requestCardTimer;
     this.connection = connection;
     this.mapper = mapper;
   }
 
   Account newCard(@NonNull RequestCardRequest requestCardRequest){
-    return this.requestCardTimer.record(() ->{
       log.info("Requesting new card for customer {} and issuer {} ",requestCardRequest.getCustomer(),requestCardRequest.getIssuer());
       final Card card = Card.builder().card(requestCardRequest.getCard())
               .customer(requestCardRequest.getCustomer()).issuer(requestCardRequest.getIssuer()).build();
@@ -63,7 +56,6 @@ public class RegisterCardService {
         log.error("Error on json serialize",e);
         throw new RuntimeException("Error on json serialize");
       }
-    });
   }
 
 }

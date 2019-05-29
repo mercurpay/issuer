@@ -1,23 +1,23 @@
 package tech.claudioed.issuer.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.nats.client.Connection;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.Timer;
-import io.nats.client.Connection;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import tech.claudioed.issuer.domain.*;
+import tech.claudioed.issuer.domain.Account;
+import tech.claudioed.issuer.domain.Balance;
+import tech.claudioed.issuer.domain.Card;
+import tech.claudioed.issuer.domain.OperationType;
+import tech.claudioed.issuer.domain.Transaction;
 import tech.claudioed.issuer.domain.exception.AccountNotFound;
 import tech.claudioed.issuer.domain.repository.AccountRepository;
 import tech.claudioed.issuer.domain.service.data.CardChargeRequest;
-import tech.claudioed.issuer.infra.metrics.MetricsConfiguration;
 
 /**
  * @author claudioed on 2019-05-20.
@@ -31,24 +31,20 @@ public class ChargeCardService {
 
   private final VaultService vaultService;
 
-  private final Timer chargeTimer;
 
   private final Connection connection;
 
   private final ObjectMapper mapper;
 
   public ChargeCardService(AccountRepository accountRepository, VaultService vaultService,
-                           @Qualifier(MetricsConfiguration.REQUEST_CHARGE) Timer chargeTimer,
                            @Qualifier("natsConnection")Connection connection, ObjectMapper mapper) {
     this.accountRepository = accountRepository;
     this.vaultService = vaultService;
-    this.chargeTimer = chargeTimer;
     this.connection = connection;
     this.mapper = mapper;
   }
 
   Balance charge(@NonNull CardChargeRequest cardChargeRequest){
-    return this.chargeTimer.record(() ->{
       log.info("Requesting charge for token {} ",cardChargeRequest.getData().getData());
       final Card card = this.vaultService.token(cardChargeRequest.getData().getData());
       final Optional<Account> accountData = this.accountRepository.findById(card.getCard());
@@ -72,6 +68,5 @@ public class ChargeCardService {
         log.error("Account not found {} ",cardChargeRequest.getData().getData());
         throw new AccountNotFound();
       }
-    });
   }
 }
