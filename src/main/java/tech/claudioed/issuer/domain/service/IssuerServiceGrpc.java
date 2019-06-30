@@ -2,14 +2,7 @@ package tech.claudioed.issuer.domain.service;
 
 import io.grpc.stub.StreamObserver;
 import io.opentracing.Tracer;
-import issuer.Account;
-import issuer.CardBalance;
-import issuer.RequestCard;
-import issuer.RequestCharge;
-import issuer.RequestPayment;
-import issuer.Transaction;
-import java.math.BigDecimal;
-
+import issuer.*;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.lognet.springboot.grpc.GRpcService;
@@ -19,6 +12,8 @@ import tech.claudioed.issuer.domain.service.data.CardChargeRequest;
 import tech.claudioed.issuer.domain.service.data.RequestCardRequest;
 import tech.claudioed.issuer.domain.service.data.TokenData;
 import tech.claudioed.issuer.domain.service.data.TransactionRequest;
+
+import java.math.BigDecimal;
 
 @Slf4j
 @GRpcService
@@ -45,9 +40,8 @@ public class IssuerServiceGrpc extends issuer.IssuerServiceGrpc.IssuerServiceImp
   @Override
   public void requestPayment(RequestPayment request, StreamObserver<Transaction> responseObserver) {
     log.info("Requesting payment for token {} ... ",request.getToken());
-    val paymentSpan = tracer.buildSpan("request-payment").start().setTag("token", request.getToken())
-            .setBaggageItem("token",request.getToken());
-    try (val scope = tracer.scopeManager().activate(paymentSpan, true)) {
+    val paymentSpan = tracer.buildSpan("request-payment").withTag("token", request.getToken()).startActive();
+
       final TransactionRequest transactionRequest =
               TransactionRequest.builder()
                       .data(TokenData.builder().data(request.getToken()).build())
@@ -58,20 +52,17 @@ public class IssuerServiceGrpc extends issuer.IssuerServiceGrpc.IssuerServiceImp
               this.purchaseService.acquire(transactionRequest);
       final Transaction transactionData = Transaction.newBuilder()
           .setStatus(transaction.getStatus()).setId(transaction.getId()).build();
-      paymentSpan.finish();
+      paymentSpan.close();
       log.info("Payment ID {} created successfully for token {} ",transactionData.getId(),request.getToken());
       responseObserver.onNext(transactionData);
       responseObserver.onCompleted();
-    }
   }
 
   @Override
   public void requestCard(RequestCard request, StreamObserver<Account> responseObserver) {
     log.info("Requesting new card for customer {} ...",request.getCustomer());
-    val requestCardSpan = tracer.buildSpan("request-card").start().setTag("customer", request.getCustomer())
-            .setTag("issuer",request.getIssuer())
-            .setBaggageItem("customer",request.getCustomer());
-    try (val scope = tracer.scopeManager().activate(requestCardSpan, true)) {
+    val requestCardSpan = tracer.buildSpan("request-card").withTag("customer", request.getCustomer())
+            .withTag("issuer",request.getIssuer()).startActive();
       final RequestCardRequest cardRequest =
               RequestCardRequest.builder()
                       .card(request.getCard())
@@ -82,19 +73,16 @@ public class IssuerServiceGrpc extends issuer.IssuerServiceGrpc.IssuerServiceImp
       final tech.claudioed.issuer.domain.Account account =
               this.registerCardService.newCard(cardRequest);
       final Account newAccount = Account.newBuilder().setId(account.getId()).build();
-      requestCardSpan.finish();
+      requestCardSpan.close();
       log.info("New card created successfully for customer {} ",request.getCustomer());
       responseObserver.onNext(newAccount);
       responseObserver.onCompleted();
-    }
   }
 
   @Override
   public void requestCharge(RequestCharge request, StreamObserver<CardBalance> responseObserver) {
     log.info("Requesting new charge for token {} ...",request.getToken());
-    val requestChargeSpan = tracer.buildSpan("request-charge").start().setTag("token", request.getToken())
-            .setBaggageItem("token",request.getToken());
-    try (val scope = tracer.scopeManager().activate(requestChargeSpan, true)) {
+    val requestChargeSpan = tracer.buildSpan("request-charge").withTag("token", request.getToken()).startActive();
       final CardChargeRequest cardChargeRequest =
               CardChargeRequest.builder()
                       .data(TokenData.builder().data(request.getToken()).build())
@@ -106,11 +94,10 @@ public class IssuerServiceGrpc extends issuer.IssuerServiceGrpc.IssuerServiceImp
                       .setBalance(balance.getBalance().doubleValue())
                       .setToken(request.getToken())
                       .build();
-      requestChargeSpan.finish();
+      requestChargeSpan.close();
       log.info("Charge executed successfully for token {} ...",request.getToken());
       responseObserver.onNext(cardBalance);
       responseObserver.onCompleted();
     }
-  }
 
 }

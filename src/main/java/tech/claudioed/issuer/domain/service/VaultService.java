@@ -1,6 +1,6 @@
 package tech.claudioed.issuer.domain.service;
 
-import io.opentracing.Span;
+import io.opentracing.ActiveSpan;
 import io.opentracing.Tracer;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -25,23 +25,21 @@ public class VaultService {
   }
 
   public Card token(@NonNull String token) {
-    log.info("Opening token {} ",token);
+    log.info("Opening token {} ", token);
     final Token tokenRequest = Token.newBuilder().setValue(token).build();
-    Span vaultSpan = tracer
-            .buildSpan("vault").asChildOf(tracer.activeSpan())
+    final ActiveSpan activeSpan = tracer.buildSpan("vault")
+            .asChildOf(tracer.activeSpan())
             .withTag("token", token)
-            .start();
-    try (val scope = tracer.scopeManager().activate(vaultSpan, true)) {
-      final DataByToken data = this.vaultingStub.fromToken(tokenRequest);
-      log.info("Token decrypted successfully {} ",token);
-      vaultSpan.setTag("customer",data.getCustomerId()).setTag("issuer",data.getIssuer());
-      vaultSpan.finish();
-      return Card.builder()
-              .card(data.getCard())
-              .customer(data.getCustomerId())
-              .issuer(data.getIssuer())
-              .build();
-    }
-  }
+            .startActive();
 
+    final DataByToken data = this.vaultingStub.fromToken(tokenRequest);
+    log.info("Token decrypted successfully {} ", token);
+    activeSpan.setTag("customer", data.getCustomerId()).setTag("issuer", data.getIssuer());
+    activeSpan.close();
+    return Card.builder()
+        .card(data.getCard())
+        .customer(data.getCustomerId())
+        .issuer(data.getIssuer())
+        .build();
+  }
 }

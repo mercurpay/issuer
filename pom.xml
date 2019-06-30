@@ -58,14 +58,14 @@
 
     <dependency>
       <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-spring-jaeger-web-starter</artifactId>
-      <version>1.0.3</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-spring-cloud-starter</artifactId>
-      <version>0.2.4</version>
+      <artifactId>grpc-opentracing</artifactId>
+      <version>0.3.0</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-core</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
